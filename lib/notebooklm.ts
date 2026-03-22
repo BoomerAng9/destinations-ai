@@ -1,18 +1,24 @@
-// Destinations AI — NotebookLM Client
+// Destinations AI — NotebookLM Client (Gemini API)
 // Creates notebooks, adds sources, generates audio overviews
+// Uses the NotebookLM API via generativelanguage.googleapis.com
+// Auth: x-goog-api-key header (same GEMINI_API_KEY)
 
+import { getGeminiApiKey } from './gemini';
 import type { NotebookRequest, NotebookResult, NotebookSource } from './types';
 
-const NOTEBOOKLM_BASE = process.env.NOTEBOOKLM_API_URL ?? 'https://notebooklm.googleapis.com/v1';
-const API_KEY = process.env.NOTEBOOKLM_API_KEY ?? '';
+const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
+
+function apiHeaders(): Record<string, string> {
+  return {
+    'Content-Type': 'application/json',
+    'x-goog-api-key': getGeminiApiKey(),
+  };
+}
 
 async function notebookFetch(path: string, body: unknown): Promise<Response> {
-  const res = await fetch(`${NOTEBOOKLM_BASE}${path}`, {
+  const res = await fetch(`${BASE_URL}${path}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${API_KEY}`,
-    },
+    headers: apiHeaders(),
     body: JSON.stringify(body),
   });
 
@@ -26,23 +32,64 @@ async function notebookFetch(path: string, body: unknown): Promise<Response> {
 
 /** Create a new notebook */
 export async function createNotebook(title: string): Promise<string> {
-  const res = await notebookFetch('/notebooks', { title });
+  const res = await notebookFetch('/notebooks', {
+    displayName: title,
+  });
   const data = await res.json();
-  return data.notebookId ?? data.id;
+  return data.name?.split('/')?.pop() ?? data.notebookId ?? data.id;
 }
 
 /** Add text or URL sources to a notebook */
 export async function addSources(notebookId: string, sources: NotebookSource[]): Promise<void> {
-  await notebookFetch(`/notebooks/${notebookId}/sources`, { sources });
+  const formattedSources = sources.map((s) => {
+    if (s.type === 'url') {
+      return { sourceType: 'URL', url: s.content, title: s.title };
+    }
+    return { sourceType: 'TEXT', text: s.content, title: s.title };
+  });
+
+  await notebookFetch(`/notebooks/${notebookId}:addSources`, {
+    sources: formattedSources,
+  });
 }
 
-/** Trigger audio overview generation */
+/** Trigger audio overview generation (podcast-style) */
 export async function generateAudioOverview(notebookId: string): Promise<string> {
-  const res = await notebookFetch(`/notebooks/${notebookId}/audio`, {
-    format: 'audio_overview',
+  const res = await notebookFetch(`/notebooks/${notebookId}:generateAudio`, {
+    audioFormat: 'AUDIO_OVERVIEW',
   });
   const data = await res.json();
-  return data.audioUrl ?? '';
+
+  // The API may return an operation for long-running audio gen
+  if (data.name && !data.done) {
+    return await pollAudioOperation(data.name);
+  }
+
+  return data.audioUrl ?? data.audio?.uri ?? '';
+}
+
+/** Poll a long-running audio generation operation */
+async function pollAudioOperation(operationName: string): Promise<string> {
+  const maxAttempts = 30; // 5 min max (10s intervals)
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise((r) => setTimeout(r, 10_000));
+
+    const res = await fetch(`${BASE_URL}/${operationName}`, {
+      method: 'GET',
+      headers: apiHeaders(),
+    });
+
+    if (!res.ok) continue;
+
+    const data = await res.json();
+    if (data.done) {
+      return data.response?.audioUrl ?? data.response?.audio?.uri ?? '';
+    }
+    if (data.error) {
+      throw new Error(`Audio generation failed: ${data.error.message}`);
+    }
+  }
+  throw new Error('Audio generation timed out');
 }
 
 /** Full pipeline: create notebook, add sources, optionally generate audio */

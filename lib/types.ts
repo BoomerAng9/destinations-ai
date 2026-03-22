@@ -257,3 +257,26 @@ export interface RichCard {
   type: 'block_score' | 'flip_result' | 'k1_summary' | 'comp_table' | 'verdict';
   data: unknown;
 }
+
+// ── Video Generation (Veo 3.1) ──
+
+export type VeoModel =
+  | 'veo-3.1-fast-generate-001'
+  | 'veo-3.1-generate-001'
+  | 'veo-3.0-fast-generate-001'
+  | 'veo-3.0-generate-001'
+  | 'veo-2.0-generate-001';
+
+export interface VideoRequest {
+  prompt: string;
+  model?: VeoModel;
+  aspectRatio?: '16:9' | '9:16' | '1:1' | '4:3';
+  duration?: number;  // seconds (default 8)
+}
+
+export interface VideoResult {
+  videoBase64: string;
+  mimeType: string;
+  model: string;
+  durationSeconds: number;
+}
