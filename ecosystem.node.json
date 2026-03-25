@@ -1,0 +1,23 @@
+{
+  "$schema": "aims-ecosystem-node/v1",
+  "nodeId": "destinations-ai",
+  "repo": "BoomerAng9/destinations-ai",
+  "tier": 2,
+  "role": "service",
+  "label": "Destinations AI — Location Intelligence",
+  "description": "AI-powered location, travel, and destination intelligence engine. Feeds geo data to AIMS, Chicken-Hawk, LUC, and Locale.",
+  "provides": ["destinations-data", "location-intel", "travel-ai"],
+  "consumes": ["aims-backend", "grammar-engine"],
+  "endpoints": {},
+  "hub": "BoomerAng9/AIMS",
+  "peers": [
+    "BoomerAng9/AIMS",
+    "BoomerAng9/Chicken-Hawk",
+    "BoomerAng9/LUC-Locale-Universal-Calculator",
+    "BoomerAng9/Locale-by-ACHIEVEMOR-2"
+  ],
+  "chatIcon": {
+    "asset": "assets/acheevy-helmet.png",
+    "rule": "ACHEEVY Helmet is the ONLY primary chat avatar."
+  }
+}
