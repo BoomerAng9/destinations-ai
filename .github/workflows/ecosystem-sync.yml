@@ -1,0 +1,39 @@
+name: Ecosystem Sync
+on:
+  push:
+    paths: ['ecosystem.node.json']
+    branches:
+      - main
+      - 'claude/connect-repo-ecosystem-5srXF'
+
+jobs:
+  notify-hub:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read node manifest
+        id: node
+        run: |
+          echo "nodeId=$(jq -r .nodeId ecosystem.node.json)" >> "$GITHUB_OUTPUT"
+          echo "role=$(jq -r .role ecosystem.node.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Notify AIMS hub
+        if: ${{ secrets.ECOSYSTEM_TOKEN != '' }}
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.ECOSYSTEM_TOKEN }}
+          repository: BoomerAng9/AIMS
+          event-type: ecosystem-node-updated
+          client-payload: >-
+            {
+              "nodeId": "${{ steps.node.outputs.nodeId }}",
+              "role": "${{ steps.node.outputs.role }}",
+              "repo": "${{ github.repository }}",
+              "sha": "${{ github.sha }}",
+              "branch": "${{ github.ref_name }}"
+            }
+
+      - name: Skip notification (no token)
+        if: ${{ secrets.ECOSYSTEM_TOKEN == '' }}
+        run: echo "⚠️ ECOSYSTEM_TOKEN not configured — skipping hub notification. Set this secret to enable ecosystem sync."

@@ -1,0 +1,23 @@
+{
+  "event": {
+    "name": "Coastal Talent and Innovation Hack-A-Thon",
+    "shortCode": "CTIH",
+    "website": "https://foai.cloud/event/"
+  },
+  "destinations_role": {
+    "description": "Destinations AI provides travel and accommodation recommendations for in-person CTIH attendees. Helps with venue directions, nearby hotels, restaurants, and local attractions.",
+    "features": [
+      "venue-directions",
+      "hotel-recommendations",
+      "restaurant-guide",
+      "local-attractions",
+      "transportation-options",
+      "group-travel-coordination"
+    ]
+  },
+  "seo_urls": {
+    "travel_guide": "https://foai.cloud/event/travel-guide",
+    "accommodations": "https://foai.cloud/event/accommodations",
+    "venue_info": "https://foai.cloud/event/venue"
+  }
+}
