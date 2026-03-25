@@ -1,0 +1,32 @@
+{
+  "node": "destinations-ai",
+  "role": "vertical",
+  "network": "boomerang9-ecosystem",
+  "version": "1.0.0",
+  "description": "AI-powered travel & destinations vertical — trip planning, destination search, and travel insights",
+  "provides": [
+    { "name": "api", "path": "app/api/", "description": "Next.js API routes for destination data" },
+    { "name": "destination-components", "path": "components/", "description": "Reusable travel UI components" },
+    { "name": "travel-data", "path": "data/", "description": "Destination datasets and travel intelligence" }
+  ],
+  "consumes": [
+    { "node": "aims", "capability": "ai-plugs", "endpoint": "/api/aims/plugs/travel" },
+    { "node": "agent-acheevy-009", "capability": "agent-api", "endpoint": "/api/agent/v1/chat" },
+    { "node": "chicken-hawk", "capability": "gateway", "endpoint": "https://gateway.acheevy.digital" }
+  ],
+  "connections": {
+    "aims": { "type": "uses-plugs", "purpose": "AI plugs for travel intelligence and recommendation engine" },
+    "agent-acheevy-009": { "type": "invokes", "purpose": "Agent handles complex trip planning queries" },
+    "chicken-hawk": { "type": "routes-through", "purpose": "External API traffic via gateway" },
+    "estatemind-ai": { "type": "sibling-vertical", "purpose": "Cross-sell real estate at travel destinations" },
+    "acheevy-digital": { "type": "linked-from", "purpose": "Marketing site drives traffic" },
+    "myclaw": { "type": "orchestrated-by", "purpose": "Docker compose and shared deployment" }
+  },
+  "file_index": {
+    "entrypoints": ["app/"],
+    "config": ["next.config.ts", "tsconfig.json", "package.json", "Dockerfile"],
+    "components": ["components/"],
+    "data": ["data/"],
+    "lib": ["lib/"]
+  }
+}
